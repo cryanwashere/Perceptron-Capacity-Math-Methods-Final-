@@ -1,0 +1,39 @@
+data = load('MNIST.mat');
+
+N = 784;
+target = 0;
+n_epochs = 5;
+
+y_train = binarize_labels(data.train.labels, target);
+y_test  = binarize_labels(data.test.labels , target);
+
+J = zeros(N,1);
+
+train_acc = zeros(1, n_epochs);
+test_acc  = zeros(1, n_epochs)
+
+for epoch = 1:n_epochs
+    % loop over the train dataset
+    for mu = 1:length(data.train.images)
+        % get this image and label
+        x_mu = data.train.images(:, mu);
+        y_mu = y_test(mu);
+
+        
+        activation = sign(J' * x_mu);
+        if activation ~= y_mu
+            J = J + y_mu * x_mu; % Update weights
+        end
+    end
+
+    % compute train accuracy
+    train_preds = sign(J' * data.train.images);   % 1 x m_train
+    train_acc(epoch) = mean(train_preds == y_train');
+    
+    % compute test accuracy
+    test_preds = sign(J' * data.test.images);     % 1 x m_test
+    test_acc(epoch) = mean(test_preds == y_test');
+    
+    fprintf('Epoch %d — Train: %.2f%%  Test: %.2f%%\n', ...
+        epoch, train_acc(epoch)*100, test_acc(epoch)*100);
+end
