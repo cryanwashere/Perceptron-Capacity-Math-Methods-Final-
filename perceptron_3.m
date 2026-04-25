@@ -15,8 +15,8 @@ J = zeros(N,1);
 train_mask = y_train == 1;
 test_mask  = y_test == 1;
 
-true_positive_train_acc = zeros(1, n_epochs);
-true_positive_test_acc  = zeros(1, n_epochs);
+train_acc = zeros(1, n_epochs);
+test_acc  = zeros(1, n_epochs);
 
 for epoch = 1:n_epochs
     % loop over the train dataset
@@ -32,25 +32,29 @@ for epoch = 1:n_epochs
         end
     end
     
-    % compute true positive accuracy on train
-    train_preds = sign(J' * data.train.images(:, train_mask));
-    true_positive_train_acc(epoch) = mean(train_preds == y_train(train_mask)');
+    % train accuracy
+    train_preds = sign(J' * data.train.images);
+    tp_train = mean(train_preds(y_train == 1)  == y_train(y_train == 1)');
+    tn_train = mean(train_preds(y_train == -1) == y_train(y_train == -1)');
+    train_acc(epoch) = (tp_train + tn_train) / 2;
 
-    % compute true positive accuracy on test
-    test_preds = sign(J' * data.test.images(:, test_mask));
-    true_positive_test_acc(epoch) = mean(test_preds == y_test(test_mask)');
+    % test accuracy
+    test_preds = sign(J' * data.test.images);
+    tp_test = mean(test_preds(y_test == 1)  == y_test(y_test == 1)');
+    tn_test = mean(test_preds(y_test == -1) == y_test(y_test == -1)');
+    test_acc(epoch) = (tp_test + tn_test) / 2;
 
-    fprintf('Epoch %d — Train TP: %.2f%%  Test TP: %.2f%%\n', ...
-        epoch, true_positive_train_acc(epoch)*100, true_positive_test_acc(epoch)*100);
+    fprintf('Epoch %d — Train: %.2f%%  Test: %.2f%%\n', ...
+        epoch, train_acc(epoch)*100, test_acc(epoch)*100);
     
 end
 
 figure;
-plot(1:n_epochs, true_positive_train_acc * 100, 'b-o', 'DisplayName', 'Train TP');
+plot(1:n_epochs, train_acc * 100, 'b-o', 'DisplayName', 'Train');
 hold on;
-plot(1:n_epochs, true_positive_test_acc * 100, 'r-o', 'DisplayName', 'Test TP');
+plot(1:n_epochs, test_acc * 100, 'r-o', 'DisplayName', 'Test');
 xlabel('Epoch');
-ylabel('True Positive Accuracy (%)');
-title(sprintf('True positive accuracy for digit %d vs all', target));
+ylabel('Accuracy (%)');
+title(sprintf('Accuracy for digit %d vs all', target));
 legend('Location', 'southeast');
 grid on;
